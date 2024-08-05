@@ -1,13 +1,26 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@import url('https://fonts.googleapis.com/css2?family=More+Sugar&display=swap');
+
+@layer utilities {
+  .font-more-sugar {
+    font-family: 'More Sugar';
+  }
+  .bg-beige-50 {
+    background-color: #fffbec;
+  }
+  .text-brown-700 {
+    color: #5c3a31;
+  }
+  .text-brown-500 {
+    color: #6b4423;
+  }
+  .bg-brown-700 {
+    background-color: #5c3a31;
+  }
+  .hover\:bg-brown-800:hover {
+    background-color: #4e3229;
+  }
 }
