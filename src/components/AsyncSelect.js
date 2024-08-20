@@ -11,10 +11,9 @@ const fetchCities = async (inputValue) => {
   );
   const data = await response.json();
   return data.map((item) => ({
-    label: `${item.address.city || item.address.town || item.address.village}, ${item.address.postcode || ''}, ${item.address.country}`,
+    label: `${item.address.city || item.address.town || item.address.village}, ${item.address.country}`,
     value: {
       city: item.address.city || item.address.town || item.address.village,
-      postcode: item.address.postcode || '',
       country: item.address.country,
     },
     address: item.address,

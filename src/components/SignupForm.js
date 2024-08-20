@@ -1,6 +1,6 @@
-// src/components/SignupForm.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const SignupForm = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ const SignupForm = () => {
   });
 
   const [passwordError, setPasswordError] = useState('');
+  const [formError, setFormError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -29,7 +30,7 @@ const SignupForm = () => {
     return regex.test(password);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validatePassword(formData.password)) {
       setPasswordError('Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.');
@@ -39,10 +40,27 @@ const SignupForm = () => {
       setPasswordError('Les mots de passe ne correspondent pas.');
       return;
     }
+
     setPasswordError('');
-    const username = formData.username; // Récupérez le nom d'utilisateur de votre formulaire ou API
-    localStorage.setItem('username', username);
-    navigate(`/profile/${username}`);
+    setFormError('');
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/users', formData);
+
+      // Stocker le pseudo dans localStorage après une réponse réussie
+      localStorage.setItem('username', response.data.username);
+      navigate(`/profile/${response.data.username}`);
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const errorMessage = Array.isArray(error.response.data)
+          ? error.response.data.map(err => err.msg).join(', ')
+          : error.response.data.detail || 'Une erreur est survenue.';
+
+        setFormError(errorMessage);
+      } else {
+        setFormError('Erreur de connexion. Veuillez réessayer.');
+      }
+    }
   };
 
   return (
@@ -134,6 +152,7 @@ const SignupForm = () => {
           />
         </div>
         {passwordError && <p className="text-red-500 text-xs italic mb-4 text-left">{passwordError}</p>}
+        {formError && <p className="text-red-500 text-xs italic mb-4 text-left">{formError}</p>}
         <div className="mb-4">
           <label className="inline-flex items-center text-left">
             <input

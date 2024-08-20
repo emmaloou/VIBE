@@ -1,6 +1,6 @@
-// src/pages/SettingsPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 
 const SettingsPage = () => {
@@ -10,12 +10,40 @@ const SettingsPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [upgradeRequestSuccess, setUpgradeRequestSuccess] = useState(null);
+  const [upgradeRequestError, setUpgradeRequestError] = useState(null);
   const navigate = useNavigate();
 
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setProfileImage(URL.createObjectURL(file));
+  const profileImages = [
+    '1.png',
+    '2.png',
+    '3.png',
+    '4.png',
+    '5.png',
+    '6.png',
+    '7.png',
+  ];
+
+  const handleRandomProfileImage = () => {
+    const randomImage = profileImages[Math.floor(Math.random() * profileImages.length)];
+    setProfileImage(`../data/profile/${profileImage}`);
+    saveProfileImageToDb(randomImage); // Sauvegarder dans la base de données
+  };
+
+  const saveProfileImageToDb = async (imageName) => {
+    const userId = localStorage.getItem('author_id'); // Supposons que l'ID de l'utilisateur soit stocké dans le localStorage
+    if (!userId) {
+      console.error("L'ID de l'utilisateur est introuvable.");
+      return;
+    }
+
+    try {
+      await axios.put(`http://127.0.0.1:8000/users/${userId}/profile-image`, {
+        image: imageName,
+      });
+      console.log('Photo de profil enregistrée dans la base de données');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de la photo de profil:', error);
     }
   };
 
@@ -33,14 +61,6 @@ const SettingsPage = () => {
 
   const handleConfirmNewPasswordChange = (event) => {
     setConfirmNewPassword(event.target.value);
-  };
-
-  const handleSaveProfileImage = () => {
-    console.log('Photo de profil enregistrée');
-  };
-
-  const handleSaveDescription = () => {
-    console.log('Description enregistrée');
   };
 
   const handleSavePassword = () => {
@@ -66,26 +86,30 @@ const SettingsPage = () => {
       <Sidebar role="user" />
       <div className="flex flex-col w-full p-8">
         <h1 className="text-3xl text-brown-700 mb-6">Réglages</h1>
+        {/* Profil */}
         <div className="bg-white shadow-md rounded-lg p-8 mb-6">
           <div className="flex items-center mb-4">
             {profileImage ? (
-              <img src={profileImage} alt="Prévisualisation" className="w-20 h-20 object-cover rounded-full" />
+              <img src='{profileImage}' alt="image" className="w-20 h-20 object-cover rounded-full" />
             ) : (
               <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-gray-700">Photo</span>
               </div>
             )}
-            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="profileImageUpload" />
-            <label htmlFor="profileImageUpload" className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer ml-4">
-              Galerie Photos
-            </label>
+            <button
+              onClick={handleRandomProfileImage}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded ml-4"
+            >
+              Changer aléatoirement
+            </button>
           </div>
           <div className="flex justify-end">
-            <button onClick={handleSaveProfileImage} className="bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded">
+            <button onClick={() => saveProfileImageToDb(profileImage)} className="bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded">
               Enregistrer
             </button>
           </div>
         </div>
+        {/* Description */}
         <div className="bg-white shadow-md rounded-lg p-8 mb-6">
           <div className="mb-4">
             <label className="block text-brown-700 text-sm font-bold mb-2 text-left" htmlFor="description">
@@ -100,11 +124,12 @@ const SettingsPage = () => {
             ></textarea>
           </div>
           <div className="flex justify-end">
-            <button onClick={handleSaveDescription} className="bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded">
+            <button onClick={() => console.log('Description enregistrée')} className="bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded">
               Enregistrer
             </button>
           </div>
         </div>
+        {/* Mot de passe */}
         <div className="bg-white shadow-md rounded-lg p-8 mb-6">
           <div className="mb-4">
             <label className="block text-brown-700 text-sm font-bold mb-2 text-left" htmlFor="currentPassword">
@@ -141,6 +166,16 @@ const SettingsPage = () => {
               Enregistrer
             </button>
           </div>
+        </div>
+        {/* Demande de modérateur */}
+        <div className="bg-white shadow-md rounded-lg p-8 mb-6">
+          <div className="flex justify-end">
+            <button onClick={() => console.log('Demande modérateur envoyée')} className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded">
+              Demander à devenir modérateur
+            </button>
+          </div>
+          {upgradeRequestSuccess && <p className="text-green-500 mt-4">{upgradeRequestSuccess}</p>}
+          {upgradeRequestError && <p className="text-red-500 mt-4">{upgradeRequestError}</p>}
         </div>
       </div>
     </div>

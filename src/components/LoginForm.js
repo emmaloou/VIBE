@@ -1,20 +1,53 @@
 // src/components/LoginForm.js
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const LoginForm = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const username = 'pseudo'; // Récupérez le nom d'utilisateur de votre formulaire ou API
-    localStorage.setItem('username', username);
-    navigate(`/profile/${username}`);
+
+    const formData = new URLSearchParams();
+    formData.append('username', email); 
+    formData.append('password', password);
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+       
+       const accessToken = response.data.access_token;
+
+      //  const decodedToken =  jwtDecode(accessToken);
+      //  const { user_id, user_pseudo, user_role } = decodedToken;
+
+      
+      localStorage.setItem('token', accessToken);
+      // localStorage.setItem('user_id', user_id);
+      // localStorage.setItem('user_pseudo', user_pseudo);
+      // localStorage.setItem('user_role', user_role);
+
+      // Rediriger l'utilisateur vers la page de profil
+      navigate(`/`);
+    } catch (error) {
+      setError("Erreur lors de la connexion. Veuillez vérifier vos identifiants.");
+      console.error('Erreur lors de la connexion:', error);
+    }
   };
 
   return (
     <div className="w-full max-w-md">
       <h1 className="text-3xl mb-6 text-left text-brown-700 font-more-sugar">Connexion</h1>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-brown-700 text-sm font-bold mb-2 text-left" htmlFor="email">
@@ -26,6 +59,9 @@ const LoginForm = () => {
             name="email"
             type="email"
             placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
         <div className="mb-6">
@@ -38,6 +74,9 @@ const LoginForm = () => {
             name="password"
             type="password"
             placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <a className="inline-block align-baseline font-bold text-sm text-brown-500 hover:text-brown-800 text-left" href="#">
             Mot de passe oublié ?

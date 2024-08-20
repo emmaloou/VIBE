@@ -7,28 +7,20 @@ const navItems = {
     { label: 'Accueil', icon: 'home', path: '/' },
     { label: 'Recherche', icon: 'search', path: '/search' },
     { label: 'Publier', icon: 'add_circle', path: '/publish' },
-    { label: 'Suivie', icon: 'favorite', path: '/follow' },
+    { label: 'Suivi', icon: 'favorite', path: '/tracking' }, 
+    { label: 'Enregistrements', icon: 'bookmark', path: '/saves' }, 
     { label: 'Profil', icon: 'person', path: `/profile/${localStorage.getItem('username')}` },
     { label: 'Réglages', icon: 'settings', path: '/settings' },
   ],
-  modo: [
+  moderator: [
     { label: 'Accueil', icon: 'home', path: '/' },
     { label: 'Recherche', icon: 'search', path: '/search' },
     { label: 'Publier', icon: 'add_circle', path: '/publish' },
-    { label: 'Suivie', icon: 'favorite', path: '/follow' },
+    { label: 'Suivi', icon: 'favorite', path: '/tracking' }, 
+    { label: 'Enregistrements', icon: 'bookmark', path: '/saves' }, 
     { label: 'Profil', icon: 'person', path: `/profile/${localStorage.getItem('username')}` },
     { label: 'Réglages', icon: 'settings', path: '/settings' },
     { label: 'Modération', icon: 'check_circle', path: '/moderation' },
-  ],
-  admin: [
-    { label: 'Accueil', icon: 'home', path: '/' },
-    { label: 'Recherche', icon: 'search', path: '/search' },
-    { label: 'Publier', icon: 'add_circle', path: '/publish' },
-    { label: 'Suivie', icon: 'favorite', path: '/follow' },
-    { label: 'Profil', icon: 'person', path: `/profile/${localStorage.getItem('username')}` },
-    { label: 'Réglages', icon: 'settings', path: '/settings' },
-    { label: 'Modération', icon: 'check_circle', path: '/moderation' },
-    { label: 'Administration', icon: 'build', path: '/admin' },
   ],
 };
 

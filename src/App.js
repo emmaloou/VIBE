@@ -10,6 +10,10 @@ import PostDetails from './pages/PostDetails';
 import SearchPage from './pages/SearchPage';
 import PublishPage from './pages/PublishPage';
 import SettingsPage from './pages/SettingsPage';
+import CategoriesPage from './pages/CategoriesPage'; 
+import ModeratorDashboard from './pages/ModeratorDashboard';
+import ModeratorPage from './pages/ModeratorPage';
+import Demos from './pages/Demos';
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/publish" element={<PublishPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/moderation" element={<ModeratorDashboard />} />
+        <Route path="/moderate-post" element={<ModeratorPage />} />
+        <Route path="/demos" element={<Demos />} />
       </Routes>
     </Router>
   );

@@ -1,67 +1,180 @@
-// src/pages/PublishPage.js
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Importer useNavigate
 import CitySelect from '../components/AsyncSelect';
-import categoriesData from '../data/categories.json';
+import Sidebar from '../components/Sidebar';
 
 const PublishPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [category, setCategory] = useState('');
-  const [city, setCity] = useState(null);
+  const [categoryIds, setCategoryIds] = useState([]); 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [ville, setVille] = useState(null); 
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+
+  const navigate = useNavigate(); // Initialiser useNavigate
 
   useEffect(() => {
-    // Charger les catégories depuis le fichier JSON
-    setCategories(categoriesData);
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/posts/categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des catégories:", error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedImage(URL.createObjectURL(file));
+      setSelectedImage(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const sideLength = Math.min(img.width, img.height);
+          const canvas = document.createElement('canvas');
+          canvas.width = sideLength;
+          canvas.height = sideLength;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(
+            img,
+            (img.width - sideLength) / 2,
+            (img.height - sideLength) / 2,
+            sideLength,
+            sideLength,
+            0,
+            0,
+            sideLength,
+            sideLength
+          );
+          canvas.toBlob((blob) => {
+            setCroppedImage(blob);
+          }, 'image/jpeg');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleCategoryChange = (event) => {
-    setCategory(event.target.value);
-  };
-
-  const handleCityChange = (selectedOption) => {
-    const { address } = selectedOption;
-    const formattedCity = `${address.city}, ${address.postcode}, ${address.country}`;
-    setCity({ value: formattedCity, label: formattedCity });
+  const handleCategoryChange = (categoryId) => {
+    setCategoryIds((prevCategoryIds) =>
+      prevCategoryIds.includes(categoryId)
+        ? prevCategoryIds.filter((id) => id !== categoryId)
+        : [...prevCategoryIds, categoryId]
+    );
   };
 
   const handleTitleChange = (event) => {
     setTitle(event.target.value);
   };
 
+  const handleVilleChange = (selectedOption) => {
+    if (selectedOption) {
+      setVille(selectedOption.value.city);
+    } else {
+      setVille('');
+    }
+  };
+
   const handleDescriptionChange = (event) => {
     setDescription(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event, isDraft = false) => {
     event.preventDefault();
-    // Logique pour envoyer les données de publication
-    console.log({ selectedImage, category, city: city ? city.value : '', title, description });
+
+    const token = localStorage.getItem('token'); 
+
+    if (!token) {
+      setError("Vous n'êtes pas authentifié.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', description);
+    formData.append('file', croppedImage || selectedImage);
+    formData.append('status', isDraft ? 'brouillon' : 'verification');
+
+    if (ville) {
+      formData.append('ville', ville);
+    }
+
+    if (categoryIds.length > 0) {
+      categoryIds.forEach(id => formData.append('category_ids', id));
+    } else {
+      formData.append('category_ids', 0);
+    }
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/posts/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      setSuccess(isDraft ? "Brouillon enregistré !" : "Publication réussie !");
+      setError(null);
+      console.log('Résultat:', response.data);
+
+      // Redirection vers la page de profil après succès
+      navigate(`/profile/${localStorage.getItem('username')}`); 
+
+    } catch (error) {
+      setSuccess(null);
+      if (error.response && error.response.data) {
+        console.error('Erreur lors de la soumission:', error.response.data);
+        setError("Erreur lors de la soumission: " + error.response.data.detail);
+      } else {
+        console.error('Erreur inconnue:', error);
+        setError("Une erreur inconnue s'est produite.");
+      }
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (newCategory.trim() === '') {
+      return;
+    }
+
+    try {
+      await axios.post('http://127.0.0.1:8000/posts/categories', { name: newCategory });
+      setNewCategory('');
+      setShowAddCategory(false);
+      window.location.reload(); // Recharger la page pour actualiser les catégories
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la catégorie:", error);
+      setError("Erreur lors de l'ajout de la catégorie.");
+    }
   };
 
   return (
     <div className="flex min-h-screen bg-beige-50 font-more-sugar">
-      <Sidebar role="user" /> {/* Remplacez "user" par le rôle approprié */}
+      <Sidebar role="user" />
       <div className="flex flex-col w-full p-8">
         <h1 className="text-3xl text-brown-700 font-more-sugar mb-6">Publier</h1>
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-8">
+        <form className="bg-white shadow-md rounded-lg p-8">
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {success && <p className="text-green-500 mb-4">{success}</p>}
           <div className="flex mb-6">
             <div>
-              {selectedImage ? (
-                <img src={selectedImage} alt="Prévisualisation" className="w-64 h-64 object-cover rounded-lg mb-4" />
+              {croppedImage ? (
+                <img src={URL.createObjectURL(croppedImage)} alt="Prévisualisation" className="w-64 h-64 object-cover rounded-lg mb-4" />
               ) : (
-                <div className="w-64 h-64 bg-gray-300 rounded-lg flex items-center justify-center mb-4">
-                  <span className="text-gray-700">Charger une photo</span>
-                </div>
+                selectedImage && (
+                  <img src={URL.createObjectURL(selectedImage)} alt="Prévisualisation" className="w-64 h-64 object-cover rounded-lg mb-4" />
+                )
               )}
               <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="imageUpload" />
               <label htmlFor="imageUpload" className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">
@@ -97,30 +210,70 @@ const PublishPage = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-brown-700 text-sm font-bold mb-2 text-left" htmlFor="category">
-              Choisir une catégorie :
-            </label>
-            <select id="category" value={category} onChange={handleCategoryChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300">
-              <option value="">Sélectionner</option>
-              {categories.map((cat, index) => (
-                <option key={index} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
             <label className="block text-brown-700 text-sm font-bold mb-2 text-left" htmlFor="city">
               Choisir une ville :
             </label>
-            <CitySelect onChange={handleCityChange} value={city} />
+            <CitySelect onChange={handleVilleChange} value={ville} />
+          </div>
+          <div className="mb-4">
+            <label className="block text-brown-700 text-sm font-bold mb-2 text-left">
+              Choisir des catégories :
+            </label>
+            <div className="flex flex-wrap">
+              {categories.map((cat) => (
+                <div key={cat.id} className="mr-4 mb-2">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      value={cat.id}
+                      checked={categoryIds.includes(cat.id)}
+                      onChange={() => handleCategoryChange(cat.id)}
+                      className="form-checkbox h-5 w-5 text-brown-600"
+                    />
+                    <span className="ml-2 text-brown-700">{cat.name}</span>
+                  </label>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setShowAddCategory(!showAddCategory)}
+                className="ml-4 mb-2 p-2 border border-brown-700 text-brown-700 rounded hover:bg-brown-700 hover:text-white transition-colors duration-300"
+              >
+                +
+              </button>
+            </div>
+            {showAddCategory && (
+              <div className="mt-4">
+                <textarea
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Nouvelle catégorie"
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300"
+                ></textarea>
+                <button
+                  type="button"
+                  onClick={handleAddCategory}
+                  className="mt-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <button
               className="bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit"
+              onClick={(e) => handleSubmit(e, false)}
             >
               Publier
+            </button>
+            <button
+              className="border-2 border-brown-700 text-brown-700 font-bold py-2 px-4 rounded hover:bg-brown-700 hover:text-white focus:outline-none focus:shadow-outline transition-colors duration-300"
+              type="button"
+              onClick={(e) => handleSubmit(e, true)}
+            >
+              Enregistrer comme brouillon
             </button>
           </div>
         </form>
