@@ -9,7 +9,7 @@ const navItems = {
     { label: 'Publier', icon: 'add_circle', path: '/publish' },
     { label: 'Suivi', icon: 'favorite', path: '/tracking' }, 
     { label: 'Enregistrements', icon: 'bookmark', path: '/saves' }, 
-    { label: 'Profil', icon: 'person', path: `/profile/${localStorage.getItem('username')}` },
+    { label: 'Profil', icon: 'person', path: '/profile/' }, // Chemin dynamique
     { label: 'Réglages', icon: 'settings', path: '/settings' },
   ],
   moderator: [
@@ -18,7 +18,7 @@ const navItems = {
     { label: 'Publier', icon: 'add_circle', path: '/publish' },
     { label: 'Suivi', icon: 'favorite', path: '/tracking' }, 
     { label: 'Enregistrements', icon: 'bookmark', path: '/saves' }, 
-    { label: 'Profil', icon: 'person', path: `/profile/${localStorage.getItem('username')}` },
+    { label: 'Profil', icon: 'person', path: '/profile/' }, // Chemin dynamique
     { label: 'Réglages', icon: 'settings', path: '/settings' },
     { label: 'Modération', icon: 'check_circle', path: '/moderation' },
   ],
@@ -27,6 +27,7 @@ const navItems = {
 const Sidebar = ({ role }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const username = localStorage.getItem('username');
 
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -36,6 +37,11 @@ const Sidebar = ({ role }) => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  if (!navItems[role]) {
+    console.error(`Le rôle "${role}" n'est pas valide.`);
+    return null;
+  }
 
   return (
     <>
@@ -49,8 +55,13 @@ const Sidebar = ({ role }) => {
         <img src={Logo} alt="Vibe logo" className="h-40 mb-8" />
         <nav className="flex flex-col w-full flex-grow">
           {navItems[role].map((item, index) => (
-            <Link to={item.path} key={index} className="flex items-center mb-4 p-2 hover:bg-gray-200 rounded">
-              <span className="material-icons mr-3 text-brown-700">{item.icon}</span>{item.label}
+            <Link 
+              to={item.path.includes('/profile/') ? `${item.path}${username}` : item.path} 
+              key={index} 
+              className="flex items-center mb-4 p-2 hover:bg-gray-200 rounded"
+            >
+              <span className="material-icons mr-3 text-brown-700">{item.icon}</span>
+              {item.label}
             </Link>
           ))}
         </nav>

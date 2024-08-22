@@ -131,8 +131,13 @@ const ProfilePage = () => {
 
   return (
     <div className="flex min-h-screen bg-beige-50 font-more-sugar">
-      <Sidebar role={user.role} />
-      <div className="flex flex-col items-center w-full p-6">
+      {/* Sidebar Fixe à gauche */}
+      <div className="fixed top-0 left-0 w-64 h-screen bg-beige-50">
+        <Sidebar role="user" />
+      </div>
+      
+      {/* Contenu de la page sans marges inutiles */}
+      <div className="flex flex-col items-start w-full  p-2">
         <div className="bg-white shadow-md rounded-lg p-6 mb-6 w-full max-w-2xl">
           <div className="flex items-center mb-4">
             <div className="rounded-full bg-gray-300 h-20 w-20"></div>

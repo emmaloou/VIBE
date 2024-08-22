@@ -31,7 +31,8 @@ const CategoriesPage = () => {
 
     try {
       // Utiliser les paramètres de requête pour envoyer le nom de la nouvelle catégorie
-      const response = await axios.post(`http://127.0.0.1:8000/posts/categories?category_name=${encodeURIComponent(newCategory)}`, {}, {
+      const response = await axios.post('http://127.0.0.1:8000/posts/categorie', null, {
+        params: { category_name: newCategory },
         headers: {
           'accept': 'application/json',
         },
@@ -43,8 +44,8 @@ const CategoriesPage = () => {
       setSuccess('Catégorie ajoutée avec succès');
       setError(null);
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la catégorie:', error);
-      setError('Erreur lors de l\'ajout de la catégorie');
+    console.error('Erreur lors de l\'ajout de la catégorie:', error.response ? error.response.data : error.message);
+    setError(error.response ? error.response.data.detail : 'Erreur lors de l\'ajout de la catégorie');
     }
   };
 

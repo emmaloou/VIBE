@@ -58,9 +58,11 @@ const ModeratorDashboard = () => {
   const displayStats = stats || defaultStats;
 
   return (
-    <div className="flex min-h-screen bg-beige-50 font-more-sugar">
-      <Sidebar role="moderator" />
-      <div className="flex flex-col w-full p-8">
+<div className="flex min-h-screen bg-beige-50 font-more-sugar">
+      <div className="fixed top-0 left-0 w-64 h-screen bg-beige-50">
+        <Sidebar role="user" />
+      </div>
+      <div className="flex flex-col items-start w-full  p-2">
         <h1 className="text-3xl text-brown-700 font-more-sugar mb-6">Espace modérateur</h1>
         <div className="flex justify-between">
           <div className="w-1/2">

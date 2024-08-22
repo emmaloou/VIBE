@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Importer useNavigate
+import { useNavigate } from 'react-router-dom';
 import CitySelect from '../components/AsyncSelect';
 import Sidebar from '../components/Sidebar';
 
@@ -17,7 +17,7 @@ const PublishPage = () => {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
 
-  const navigate = useNavigate(); // Initialiser useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -143,28 +143,41 @@ const PublishPage = () => {
     }
   };
 
-  const handleAddCategory = async () => {
-    if (newCategory.trim() === '') {
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategory.trim()) {
+      setError('Le nom de la catégorie ne peut pas être vide');
       return;
     }
 
     try {
-      await axios.post('http://127.0.0.1:8000/posts/categories', { name: newCategory });
+      // Utiliser les paramètres de requête pour envoyer le nom de la nouvelle catégorie
+      const response = await axios.post(`http://127.0.0.1:8000/posts/categories?category_name=${encodeURIComponent(newCategory)}`, {}, {
+        headers: {
+          'accept': 'application/json',
+        },
+      });
+
+      console.log('Réponse de l\'ajout:', response.data);
+      setCategories([...categories, response.data]); // Ajouter la nouvelle catégorie à la liste
       setNewCategory('');
-      setShowAddCategory(false);
-      window.location.reload(); // Recharger la page pour actualiser les catégories
+      setSuccess('Catégorie ajoutée avec succès');
+      setError(null);
     } catch (error) {
-      console.error("Erreur lors de l'ajout de la catégorie:", error);
-      setError("Erreur lors de l'ajout de la catégorie.");
+      console.error('Erreur lors de l\'ajout de la catégorie:', error);
+      setError('Erreur lors de l\'ajout de la catégorie');
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-beige-50 font-more-sugar">
-      <Sidebar role="user" />
-      <div className="flex flex-col w-full p-8">
+    <div className="font-more-sugar flex">
+      <div className="fixed top-0 left-0 h-screen bg-beige-50 w-64">
+        <Sidebar role="user" />
+      </div>
+      
+      <div className="flex-grow">
         <h1 className="text-3xl text-brown-700 font-more-sugar mb-6">Publier</h1>
-        <form className="bg-white shadow-md rounded-lg p-8">
+        <form className="bg-white p-8">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {success && <p className="text-green-500 mb-4">{success}</p>}
           <div className="flex mb-6">
@@ -243,21 +256,21 @@ const PublishPage = () => {
               </button>
             </div>
             {showAddCategory && (
-              <div className="mt-4">
-                <textarea
+               <form onSubmit={handleAddCategory} className="mb-4">
+                <input
+                  type="text"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="Nouvelle catégorie"
-                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300"
-                ></textarea>
+                  placeholder="Nom de la nouvelle catégorie"
+                  className="p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300 mb-2"
+                />
                 <button
-                  type="button"
-                  onClick={handleAddCategory}
-                  className="mt-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
+                  type="submit"
+                  className="ml-2 bg-brown-700 hover:bg-brown-800 text-white font-bold py-2 px-4 rounded"
                 >
-                  Enregistrer
+                  Ajouter
                 </button>
-              </div>
+              </form>
             )}
           </div>
           <div className="flex items-center justify-between">

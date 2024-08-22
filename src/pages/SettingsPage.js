@@ -83,8 +83,13 @@ const SettingsPage = () => {
 
   return (
     <div className="flex min-h-screen bg-beige-50 font-more-sugar">
+    {/* Sidebar Fixe à gauche */}
+    <div className="fixed top-0 left-0 w-64 h-screen bg-beige-50">
       <Sidebar role="user" />
-      <div className="flex flex-col w-full p-8">
+    </div>
+    
+    {/* Contenu de la page sans marges inutiles */}
+    <div className="flex flex-col items-start w-full  p-2">
         <h1 className="text-3xl text-brown-700 mb-6">Réglages</h1>
         {/* Profil */}
         <div className="bg-white shadow-md rounded-lg p-8 mb-6">
